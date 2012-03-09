@@ -66,6 +66,8 @@ safe_application(Node) ->
                 Arity ->
                     erlang:error({restricted, [Arity]})
             end;
+        fun_expr ->
+            erlang:error({restricted}, []);
         _ ->
             Node
     end.
