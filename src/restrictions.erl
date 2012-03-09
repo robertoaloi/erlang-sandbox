@@ -76,6 +76,10 @@
 				      localtime_to_universaltime
 				     ]}]).
 
+is_allowed(f, []) ->
+    true;
+is_allowed(f, [_]) ->
+    true;
 is_allowed(_Function, _Args) ->
     false.
 

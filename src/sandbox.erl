@@ -12,15 +12,19 @@ eval(E, Bs) ->
     {ok, Tokens, _} = erl_scan:string(E),
     {ok, Exprs} = erl_parse:parse_exprs(Tokens),
     SafeExprs = safe_exprs(Exprs),
-    {value, Value, NBs} = erl_eval:exprs(SafeExprs, Bs, {value, fun lh/2}, {value, fun nlh/2}),
+    {value, Value, NBs} = erl_eval:exprs(SafeExprs, Bs, {eval, fun lh/3}, {value, fun nlh/2}),
     {Value, NBs}.
 
-lh(Name, Args) ->
-    erlang:error({restricted, [{Name, Args}]}).
+lh(f, [], _Bs) ->
+    {value, ok, erl_eval:new_bindings()};
+lh(f, [{var,_,Name}], Bs) ->
+    {value, ok, erl_eval:del_binding(Name, Bs)};
+lh(Name, Args, Bs) ->
+    {value, erlang:error({restricted, [{Name, Args}]}), Bs}.
 
 nlh({M, F}, Args) ->
     apply(M, F, Args);
-nlh(F, Args) -> 
+nlh(F, Args) ->
     erlang:error({restricted, [{F, length(Args)}]}). 
 
 safe_application(Node) ->
