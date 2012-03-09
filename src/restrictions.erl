@@ -5,6 +5,34 @@
 -define(MAX_HEAP_SIZE, 10000).
 -define(MAX_ARGS_SIZE, 200).
 
+-define(LOCAL_ALLOWED, [
+                        %% Shell commands
+                        f,
+                        %% Erlang module
+                        round,
+                        atom_to_list,
+                        binary_to_list,
+                        integer_to_list,
+                        float_to_list,
+                        tuple_to_list,
+                        list_to_binary,
+                        list_to_integer,
+                        list_to_tuple,
+                        list_to_existing_atom,
+                        setelement,
+                        element,
+                        size,
+                        split_binary,
+                        error,
+                        throw,
+                        time,
+                        date,
+                        now,
+                        universaltime,
+                        localtime,
+                        localtime_to_universaltime
+                       ]).
+
 -define(NON_LOCAL_ALLOWED, [
 			    lists,
 			    string,
@@ -76,12 +104,13 @@
 				      localtime_to_universaltime
 				     ]}]).
 
-is_allowed(f, []) ->
-    true;
-is_allowed(f, [_]) ->
-    true;
-is_allowed(_Function, _Args) ->
-    false.
+is_allowed(Function, Args) ->
+    case proplists:lookup(Function, ?LOCAL_ALLOWED) of
+        {Function, true} ->
+            check_limits(Args);
+        _Else ->
+            false
+    end.
 
 is_allowed(Module, Function, Args) ->
     case proplists:lookup(Module, ?NON_LOCAL_ALLOWED) of

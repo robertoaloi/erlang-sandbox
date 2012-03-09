@@ -19,8 +19,14 @@ lh(f, [], _Bs) ->
     {value, ok, erl_eval:new_bindings()};
 lh(f, [{var,_,Name}], Bs) ->
     {value, ok, erl_eval:del_binding(Name, Bs)};
-lh(Name, Args, Bs) ->
-    {value, erlang:error({restricted, [{Name, Args}]}), Bs}.
+lh(F, Args, Bs) ->
+    Arity = length(Args),
+    case erlang:function_exported(user_default, F, Arity) of
+	true ->
+            {eval, erlang:make_fun(user_default, F, Arity), Args, Bs};
+	false ->
+            {value, erlang:error({restricted, [{F, Args}]}), Bs}
+    end.
 
 nlh({M, F}, Args) ->
     apply(M, F, Args);
