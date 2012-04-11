@@ -4,6 +4,7 @@
 
 -define(MAX_HEAP_SIZE, 10000).
 -define(MAX_ARGS_SIZE, 200).
+-define(MAX_SEQ, 100).
 
 -define(LOCAL_ALLOWED, [
                         %% Shell commands
@@ -112,6 +113,8 @@ is_allowed(Function, Args) ->
             false
     end.
 
+is_allowed(lists, seq, [{integer, 1, From}, {integer, 1, To} | _]) ->
+    abs(From - To) < ?MAX_SEQ;
 is_allowed(Module, Function, Args) ->
     case proplists:lookup(Module, ?NON_LOCAL_ALLOWED) of
 	{Module, true} ->
