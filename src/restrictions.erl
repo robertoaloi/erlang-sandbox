@@ -115,6 +115,8 @@ is_allowed(Function, Args) ->
 
 is_allowed(lists, seq, [{integer, 1, From}, {integer, 1, To} | _]) ->
     abs(From - To) < ?MAX_SEQ;
+is_allowed(lists, seq, _) ->
+    false;
 is_allowed(Module, Function, Args) ->
     case proplists:lookup(Module, ?NON_LOCAL_ALLOWED) of
 	{Module, true} ->
