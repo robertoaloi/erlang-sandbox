@@ -5,15 +5,18 @@
 -define(MAX_HEAP_SIZE, 10000).
 -define(MAX_ARGS_SIZE, 200).
 
+-define(ATOM_PREFIX, "axwlefhubay_").
+
 eval(E) ->
     eval(E, []).
 
-eval(E, Bs) -> 
+eval(E, Bs) ->
     {ok, Tokens, _} = erl_scan:string(E),
     {ok, Exprs} = erl_parse:parse_exprs(Tokens),
     SafeExprs = safe_exprs(Exprs),
     {value, Value, NBs} = erl_eval:exprs(SafeExprs, Bs, {eval, fun lh/3}, {value, fun nlh/2}),
-    {Value, NBs}.
+    {erl_syntax:concrete(restore_exprs(erl_syntax:abstract(Value))),
+     erl_syntax:concrete(restore_exprs(erl_syntax:abstract(NBs)))}.
 
 lh(f, [], _Bs) ->
     {value, ok, erl_eval:new_bindings()};
@@ -31,13 +34,17 @@ lh(F, Args, Bs) ->
 nlh({M, F}, Args) ->
     apply(M, F, Args);
 nlh(F, Args) ->
-    erlang:error({restricted, [{F, length(Args)}]}). 
+    erlang:error({restricted, [{F, length(Args)}]}).
 
 safe_application(Node) ->
     case erl_syntax:type(Node) of
         application ->
             case erl_syntax_lib:analyze_application(Node) of
-                {Module, {Function, Arity}} ->
+                {FakeModule, {FakeFunction, Arity}} ->
+                    ?ATOM_PREFIX ++ RealModule = atom_to_list(FakeModule),
+                    Module = list_to_atom(RealModule),
+                    ?ATOM_PREFIX ++ RealFunction = atom_to_list(FakeFunction),
+                    Function = list_to_atom(RealFunction),
                     Args = erl_syntax:application_arguments(Node),
                     case restrictions:is_allowed(Module, Function, Args) of
                         {true, Mock} ->
@@ -46,11 +53,16 @@ safe_application(Node) ->
                               erl_syntax:atom(Function),
                               Args);
                         true ->
-                            Node;
+                            erl_syntax:application(
+                              erl_syntax:atom(Module),
+                              erl_syntax:atom(Function),
+                              Args);
                         false ->
                             erlang:error({restricted, [Module, Function, Arity]})
                     end;
-                {Function, Arity} ->
+                {FakeFunction, Arity} ->
+                    ?ATOM_PREFIX ++ RealFunction = atom_to_list(FakeFunction),
+                    Function = list_to_atom(RealFunction),
                     Args = erl_syntax:application_arguments(Node),
                     case restrictions:is_allowed(Function, Args) of
                         {true, Mock} ->
@@ -72,16 +84,48 @@ safe_application(Node) ->
             Node
     end.
 
+replace_atoms(Node) ->
+    case erl_syntax:type(Node) of
+        atom ->
+            erl_syntax:atom(list_to_atom(?ATOM_PREFIX ++ erl_syntax:atom_name(Node)));
+        _ ->
+            Node
+    end.
+
+restore_atoms(Node) ->
+    case erl_syntax:type(Node) of
+        atom ->
+            case erl_syntax:atom_name(Node) of
+                ?ATOM_PREFIX ++ Atom ->
+                    erl_syntax:atom(list_to_atom(Atom));
+                Else ->
+                    erl_syntax:atom(list_to_atom(Else))
+            end;
+        _ ->
+            Node
+    end.
+
 safe_exprs(Exprs) ->
     revert(safe_expr(Exprs)).
 
+restore_exprs(Exprs) ->
+    revert(restore_expr(Exprs)).
+
+revert(Tree) when is_list(Tree) ->
+    [erl_syntax:revert(T) || T <- lists:flatten(Tree)];
 revert(Tree) ->
-    [erl_syntax:revert(T) || T <- lists:flatten(Tree)].
+    erl_syntax:revert(Tree).
 
 safe_expr(Exprs) when is_list(Exprs) ->
     [safe_expr(Expr) || Expr <- Exprs];
 safe_expr(Expr) ->
-    postorder(fun safe_application/1, Expr).
+    postorder(fun safe_application/1,
+              postorder(fun replace_atoms/1, Expr)).
+
+restore_expr(Exprs) when is_list(Exprs) ->
+    [restore_expr(Expr) || Expr <- Exprs];
+restore_expr(Expr) ->
+    postorder(fun restore_atoms/1, Expr).
 
 postorder(F, Tree) ->
     F(case erl_syntax:subtrees(Tree) of
