@@ -38,6 +38,15 @@ boolean_test() ->
 pattern_match_test() ->
     ?assertException(error, {badmatch, _}, eval_pattern_match()).
 
+now_test() ->
+    ?assertMatch({{_,_,_}, _}, eval_now()).
+
+forget_test() ->
+    ?assertEqual({ok, [{'B', bob}]}, eval_forget()).
+
+element_test() ->
+    ?assertMatch({c, _}, eval_element()).
+
 %% Internal
 eval_sort() ->
     sandbox:eval("lists:sort([3,2,1]).").
@@ -93,3 +102,19 @@ eval_pattern_match() ->
     {_, Bs} = sandbox:eval(E1),
     E2 = "Bob = alice.",
     sandbox:eval(E2, Bs).
+
+eval_now() ->
+    E1 = "now().",
+    sandbox:eval(E1).
+
+eval_forget() ->
+    E1 = "A = alice.",
+    {alice, Bs1} = sandbox:eval(E1),
+    E2 = "B = bob.",
+    {bob, Bs2} = sandbox:eval(E2, Bs1),
+    E3 = "f(A).",
+    sandbox:eval(E3, Bs2).
+
+eval_element() ->
+    E1 = "element(3, {a, b, c}).",
+    sandbox:eval(E1).

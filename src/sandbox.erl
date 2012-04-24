@@ -71,7 +71,9 @@ safe_application(Node) ->
                               erl_syntax:atom(Function),
                               Args);
                         true ->
-                            Node;
+                            erl_syntax:application(
+                              erl_syntax:atom(Function),
+                              Args);
                         false ->
                             erlang:error({restricted, [Function, Arity]})
                     end;
