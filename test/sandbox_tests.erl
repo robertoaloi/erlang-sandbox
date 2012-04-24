@@ -29,8 +29,14 @@ seq_test() ->
     ?assertException(error, {restricted, _}, eval_bad_seq_2()),
     ?assertException(error, {restricted, _}, eval_bad_seq_3()).
 
+tuple_fun_test() ->
+    ?assertException(error, undef, eval_tuple_fun()).
+
 boolean_test() ->
     ?assertMatch({false, _}, eval_boolean()).
+
+pattern_match_test() ->
+    ?assertException(error, {badmatch, _}, eval_pattern_match()).
 
 %% Internal
 eval_sort() ->
@@ -74,6 +80,16 @@ eval_bad_seq_3() ->
     E1 = "lists:seq(250, 1, -1).",
     sandbox:eval(E1).
 
+eval_tuple_fun() ->
+    E1 = "lists:zipwith3({erlang, apply}, [init], [stop], [ [] ]).",
+    sandbox:eval(E1).
+
 eval_boolean() ->
     E1 = "true andalso false.",
     sandbox:eval(E1).
+
+eval_pattern_match() ->
+    E1 = "Bob = bob.",
+    {_, Bs} = sandbox:eval(E1),
+    E2 = "Bob = alice.",
+    sandbox:eval(E2, Bs).
