@@ -29,6 +29,9 @@ seq_test() ->
     ?assertException(error, {restricted, _}, eval_bad_seq_2()),
     ?assertException(error, {restricted, _}, eval_bad_seq_3()).
 
+boolean_test() ->
+    ?assertMatch({false, _}, eval_boolean()).
+
 %% Internal
 eval_sort() ->
     sandbox:eval("lists:sort([3,2,1]).").
@@ -69,4 +72,8 @@ eval_bad_seq_2() ->
 
 eval_bad_seq_3() ->
     E1 = "lists:seq(250, 1, -1).",
+    sandbox:eval(E1).
+
+eval_boolean() ->
+    E1 = "true andalso false.",
     sandbox:eval(E1).

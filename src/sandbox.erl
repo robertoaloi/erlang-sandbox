@@ -87,7 +87,15 @@ safe_application(Node) ->
 replace_atoms(Node) ->
     case erl_syntax:type(Node) of
         atom ->
-            erl_syntax:atom(list_to_atom(?ATOM_PREFIX ++ erl_syntax:atom_name(Node)));
+            AtomName = erl_syntax:atom_name(Node),
+            case AtomName of
+                "true" ->
+                    Node;
+                "false" ->
+                    Node;
+                _ ->
+                    erl_syntax:atom(list_to_atom(?ATOM_PREFIX ++ AtomName))
+            end;
         _ ->
             Node
     end.
