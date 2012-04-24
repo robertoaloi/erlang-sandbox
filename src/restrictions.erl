@@ -141,7 +141,7 @@ max_args(Args) ->
         true ->
             true;
         false ->
-            erlang:error({restricted, max_args_size_reached})
+            sandbox:restricted()
     end.
 
 max_heap_size() ->
@@ -150,5 +150,5 @@ max_heap_size() ->
         true ->
             true;
         false ->
-            erlang:error({restricted, max_heap_size_reached})
+            sandbox:restricted()
     end.

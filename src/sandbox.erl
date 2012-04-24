@@ -2,6 +2,8 @@
 
 -export([eval/1, eval/2]).
 
+-export([restricted_msg/0]).
+
 -define(MAX_HEAP_SIZE, 10000).
 -define(MAX_ARGS_SIZE, 200).
 
@@ -28,19 +30,19 @@ lh(F, Args, Bs) ->
 	true ->
             {eval, erlang:make_fun(user_default, F, Arity), Args, Bs};
 	false ->
-            {value, erlang:error({restricted, [{F, Args}]}), Bs}
+            {value, sandbox:restricted_msg(), Bs}
     end.
 
 nlh({M, F}, Args) ->
     apply(M, F, Args);
-nlh(F, Args) ->
-    erlang:error({restricted, [{F, length(Args)}]}).
+nlh(_F, _Args) ->
+    sandbox:restricted_msg().
 
 safe_application(Node) ->
     case erl_syntax:type(Node) of
         application ->
             case erl_syntax_lib:analyze_application(Node) of
-                {FakeModule, {FakeFunction, Arity}} ->
+                {FakeModule, {FakeFunction, _Arity}} ->
                     ?ATOM_PREFIX ++ RealModule = atom_to_list(FakeModule),
                     Module = list_to_atom(RealModule),
                     ?ATOM_PREFIX ++ RealFunction = atom_to_list(FakeFunction),
@@ -58,9 +60,9 @@ safe_application(Node) ->
                               erl_syntax:atom(Function),
                               Args);
                         false ->
-                            erlang:error({restricted, [Module, Function, Arity]})
+                            sandbox:restricted_msg()
                     end;
-                {FakeFunction, Arity} ->
+                {FakeFunction, _Arity} ->
                     ?ATOM_PREFIX ++ RealFunction = atom_to_list(FakeFunction),
                     Function = list_to_atom(RealFunction),
                     Args = erl_syntax:application_arguments(Node),
@@ -75,13 +77,13 @@ safe_application(Node) ->
                               erl_syntax:atom(Function),
                               Args);
                         false ->
-                            erlang:error({restricted, [Function, Arity]})
+                            sandbox:restricted_msg()
                     end;
-                Arity ->
-                    erlang:error({restricted, [Arity]})
+                _Arity ->
+                    sandbox:restricted_msg()
             end;
         fun_expr ->
-            erlang:error({restricted}, []);
+            sandbox:restricted_msg();
         _ ->
             Node
     end.
@@ -147,3 +149,6 @@ postorder(F, Tree) ->
                                        || Subtree <- Group]
                                       || Group <- List])
       end).
+
+restricted_msg() ->
+    erlang:error(restricted).

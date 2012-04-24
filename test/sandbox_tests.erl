@@ -6,28 +6,28 @@ ok_test() ->
     ?assertMatch({[1,2,3], _}, eval_sort()).
 
 fail_test() ->
-    ?assertException(error, {restricted, _}, eval_os()).
+    ?assertException(error, restricted, eval_os()).
 
 zipwith_and_exec_test() ->
-    ?assertException(error, {restricted}, eval_zipwith_and_exec()).
+    ?assertException(error, restricted, eval_zipwith_and_exec()).
 
 apply_test() ->
-    ?assertException(error, {restricted, _}, eval_apply()).
+    ?assertException(error, restricted, eval_apply()).
 
 apply_in_fun_and_exec_test() ->
-    ?assertException(error, {restricted, _}, eval_apply_in_fun_and_exec()).
+    ?assertException(error, restricted, eval_apply_in_fun_and_exec()).
 
 local_test() ->
-    ?assertException(error, {restricted, _}, eval_local()).
+    ?assertException(error, restricted, eval_local()).
 
 bindings_test() ->
-    ?assertException(error, {restricted, _}, eval_bindings()).
+    ?assertException(error, restricted, eval_bindings()).
 
 seq_test() ->
     ?assertMatch({[1,2,3,4,5], _}, eval_good_seq_2()),
     ?assertMatch({[5,4,3,2,1], _}, eval_good_seq_3()),
-    ?assertException(error, {restricted, _}, eval_bad_seq_2()),
-    ?assertException(error, {restricted, _}, eval_bad_seq_3()).
+    ?assertException(error, restricted, eval_bad_seq_2()),
+    ?assertException(error, restricted, eval_bad_seq_3()).
 
 tuple_fun_test() ->
     ?assertException(error, undef, eval_tuple_fun()).
