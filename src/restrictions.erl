@@ -113,6 +113,8 @@ is_allowed(Function, Args) ->
             false
     end.
 
+is_allowed(io_lib, get_until, _) ->
+    false;
 is_allowed(lists, seq, [{integer, 1, From}, {integer, 1, To} | _]) ->
     abs(From - To) < ?MAX_SEQ;
 is_allowed(lists, seq, _) ->
