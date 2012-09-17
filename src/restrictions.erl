@@ -115,6 +115,10 @@ is_allowed(Function, Args) ->
 
 is_allowed(io_lib, get_until, _) ->
     false;
+is_allowed(lists, duplicate, [{integer, 1, Int} | _]) ->
+    Int < ?MAX_SEQ;
+is_allowed(lists, duplicate, _) ->
+    false;
 is_allowed(lists, seq, [{integer, 1, From}, {integer, 1, To} | _]) ->
     abs(From - To) < ?MAX_SEQ;
 is_allowed(lists, seq, _) ->
