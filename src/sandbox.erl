@@ -84,6 +84,8 @@ safe_application(Node) ->
             end;
         fun_expr ->
             sandbox:restricted_msg();
+        binary_comp ->
+            sandbox:restricted_msg();
         _ ->
             Node
     end.
