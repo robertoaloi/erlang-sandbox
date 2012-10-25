@@ -84,7 +84,7 @@ safe_application(Node) ->
             end;
         fun_expr ->
             sandbox:restricted_msg();
-        binary_comp ->
+        size_qualifier ->
             sandbox:restricted_msg();
 	list_comp ->
             sandbox:restricted_msg();
