@@ -86,6 +86,8 @@ safe_application(Node) ->
             sandbox:restricted_msg();
         binary_comp ->
             sandbox:restricted_msg();
+        list_comp ->
+            sandbox:restricted_msg();
         _ ->
             Node
     end.
