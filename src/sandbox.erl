@@ -6,6 +6,7 @@
 
 -define(MAX_HEAP_SIZE, 10000).
 -define(MAX_ARGS_SIZE, 200).
+-define(MAX_SIZE_QUALIFIER_DIMENSION, 500).
 
 -define(ATOM_PREFIX, "axwlefhubay_").
 
@@ -15,8 +16,9 @@ eval(E) ->
 eval(E, Bs) ->
     {ok, Tokens, _} = erl_scan:string(E),
     {ok, Exprs} = erl_parse:parse_exprs(Tokens),
+    put(bindings,Bs),
     SafeExprs = safe_exprs(Exprs),
-    {value, Value, NBs} = erl_eval:exprs(SafeExprs, Bs, {eval, fun lh/3}, {value, fun nlh/2}),
+    {value, Value, NBs} = erl_eval:exprs(SafeExprs, get(bindings), {eval, fun lh/3}, {value, fun nlh/2}),
     {erl_syntax:concrete(restore_exprs(erl_syntax:abstract(Value))),
      erl_syntax:concrete(restore_exprs(erl_syntax:abstract(NBs)))}.
 
@@ -85,9 +87,16 @@ safe_application(Node) ->
         fun_expr ->
             sandbox:restricted_msg();
         size_qualifier ->
-            sandbox:restricted_msg();
-	list_comp ->
-            sandbox:restricted_msg();
+            SubTree = erl_syntax:size_qualifier_argument(Node),
+            {value, Value, NBs} = erl_eval:exprs([revert(SubTree)], get(bindings), {eval, fun lh/3}, {value, fun nlh/2}),
+            if
+                Value < ?MAX_SIZE_QUALIFIER_DIMENSION, is_integer(Value) ->
+                    [First, _] =  erl_syntax:subtrees(Node),
+                    put(bindings,NBs),
+                    erl_syntax:update_tree(Node,[First,[{integer,1,Value}]]);
+                true ->
+                    sandbox:restricted_msg()
+            end;
         _ ->
             Node
     end.
