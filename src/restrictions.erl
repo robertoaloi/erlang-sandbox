@@ -147,7 +147,7 @@ max_args(Args) ->
         true ->
             true;
         false ->
-            sandbox:restricted()
+            sandbox:restricted_msg()
     end.
 
 max_heap_size() ->
@@ -156,5 +156,5 @@ max_heap_size() ->
         true ->
             true;
         false ->
-            sandbox:restricted()
+            sandbox:restricted_msg()
     end.
