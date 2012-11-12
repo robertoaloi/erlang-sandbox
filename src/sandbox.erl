@@ -6,6 +6,7 @@
 
 -define(MAX_HEAP_SIZE, 10000).
 -define(MAX_ARGS_SIZE, 200).
+-define(MAX_SIZE_QUALIFIER_DIMENSION, 500).
 
 -define(ATOM_PREFIX, "axwlefhubay_").
 
@@ -27,9 +28,9 @@ lh(f, [{var,_,Name}], Bs) ->
 lh(F, Args, Bs) ->
     Arity = length(Args),
     case erlang:function_exported(user_default, F, Arity) of
-	true ->
+        true ->
             {eval, erlang:make_fun(user_default, F, Arity), Args, Bs};
-	false ->
+        false ->
             {value, sandbox:restricted_msg(), Bs}
     end.
 
@@ -85,7 +86,13 @@ safe_application(Node) ->
         fun_expr ->
             sandbox:restricted_msg();
         size_qualifier ->
-            sandbox:restricted_msg();
+            SizeQualifier = erl_syntax:size_qualifier_argument(Node),
+            case SizeQualifier of
+                {integer, 1, Value} when Value < ?MAX_SIZE_QUALIFIER_DIMENSION ->
+                    Node;
+                _ ->
+                    sandbox:restricted_msg()
+            end;
         _ ->
             Node
     end.
