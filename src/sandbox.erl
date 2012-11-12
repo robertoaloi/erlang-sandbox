@@ -28,9 +28,9 @@ lh(f, [{var,_,Name}], Bs) ->
 lh(F, Args, Bs) ->
     Arity = length(Args),
     case erlang:function_exported(user_default, F, Arity) of
-true ->
+        true ->
             {eval, erlang:make_fun(user_default, F, Arity), Args, Bs};
-false ->
+        false ->
             {value, sandbox:restricted_msg(), Bs}
     end.
 
@@ -86,16 +86,11 @@ safe_application(Node) ->
         fun_expr ->
             sandbox:restricted_msg();
         size_qualifier ->
-            SubTree = erl_syntax:size_qualifier_argument(Node),
-            case SubTree of
-                {integer,1,Value} ->
-                    if 
-                        Value < ?MAX_SIZE_QUALIFIER_DIMENSION -> 
-                            Node;
-                        true -> 
-                            sandbox:restricted_msg()
-                    end;
-                _Any -> 
+            SizeQualifier = erl_syntax:size_qualifier_argument(Node),
+            case SizeQualifier of
+                {integer, 1, Value} when Value < ?MAX_SIZE_QUALIFIER_DIMENSION ->
+                    Node;
+                _ ->
                     sandbox:restricted_msg()
             end;
         _ ->
