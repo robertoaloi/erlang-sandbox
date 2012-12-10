@@ -93,7 +93,23 @@ safe_application(Node) ->
                 _ ->
                     sandbox:restricted_msg()
             end;
-        _ ->
+        list_comp ->
+            ListCompBody = erl_syntax:list_comp_body(Node),
+            case length(ListCompBody) =< 1 of
+                true ->
+                    Node;
+                false ->
+                    sandbox:restricted_msg()
+            end;
+        binary_comp ->
+            BinaryCompBody = erl_syntax:binary_comp_body(Node),
+            case length(BinaryCompBody) =< 1 of
+                true ->
+                    Node;
+                false ->
+                    sandbox:restricted_msg()
+            end;
+        _Else ->
             Node
     end.
 
