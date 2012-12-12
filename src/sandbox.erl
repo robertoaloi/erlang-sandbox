@@ -98,8 +98,37 @@ safe_application(Node) ->
                 _Any -> 
                     sandbox:restricted_msg()
             end;
-        _ ->
+         list_comp ->
+            ListCompBody = erl_syntax:list_comp_body(Node),
+            case get_number_of_generators(ListCompBody) =< 1 of
+                true ->
+                    Node;
+                false ->
+                    sandbox:restricted_msg()
+            end;
+        binary_comp ->
+            BinaryCompBody = erl_syntax:binary_comp_body(Node),
+            case get_number_of_generators(BinaryCompBody) =< 1 of
+                true ->
+                    Node;
+                false ->
+                    sandbox:restricted_msg()
+            end;
+        _Else ->
             Node
+    end.
+
+get_number_of_generators(Node)->
+    get_number_of_generators(Node,0).
+
+get_number_of_generators([],Acc)->
+    Acc;
+get_number_of_generators([H|T],Acc)->
+    case erl_syntax:type(H) of
+    generator ->
+        get_number_of_generators(T,Acc+1);
+    _ ->
+        get_number_of_generators(T,Acc)
     end.
 
 replace_atoms(Node) ->
