@@ -35,75 +35,75 @@
                        ]).
 
 -define(NON_LOCAL_ALLOWED, [
-			    lists,
-			    string,
-			    re,
-			    sets,
-			    sofs,
-			    ordsets,
-			    dict,
-			    orddict,
-			    gb_sets,
-			    gb_trees,
-			    calendar,
-			    queue,
-			    proplists,
-			    math,
-			    {os, [
-				  type,
-				  version
-				 ]},
-			    io_lib,
-			    {erlang, [
-				      '+',
-				      '-',
-				      '*',
-				      '/',
-				      'bnot',
-				      'div',
-				      'rem',
-				      'band',
-				      'bor',
-				      'bxor',
-				      'bsl',
-				      'bsr',
-				      'not',
-				      'and',
-				      'or',
-				      'xor',
-				      '==',
-				      '/=',
-				      '=<',
-				      '<',
-				      '>=',
-				      '>',
-				      '=:=',
-				      '=/=',
-				      '++',
-				      '--',
-				      round,
-				      atom_to_list,
-				      binary_to_list,
-				      integer_to_list,
-				      float_to_list,
-				      tuple_to_list,
-				      list_to_binary,
-				      list_to_integer,
-				      list_to_tuple,
-				      list_to_existing_atom,
-				      setelement,
-				      element,
-				      size,
-				      split_binary,
-				      error,
-				      throw,
-				      time,
-				      date,
-				      now,
-				      universaltime,
-				      localtime,
-				      localtime_to_universaltime
-				     ]}]).
+lists,
+string,
+re,
+sets,
+sofs,
+ordsets,
+dict,
+orddict,
+gb_sets,
+gb_trees,
+calendar,
+queue,
+proplists,
+math,
+{os, [
+type,
+version
+]},
+io_lib,
+{erlang, [
+'+',
+'-',
+'*',
+'/',
+'bnot',
+'div',
+'rem',
+'band',
+'bor',
+'bxor',
+'bsl',
+'bsr',
+'not',
+'and',
+'or',
+'xor',
+'==',
+'/=',
+'=<',
+'<',
+'>=',
+'>',
+'=:=',
+'=/=',
+'++',
+'--',
+round,
+atom_to_list,
+binary_to_list,
+integer_to_list,
+float_to_list,
+tuple_to_list,
+list_to_binary,
+list_to_integer,
+list_to_tuple,
+list_to_existing_atom,
+setelement,
+element,
+size,
+split_binary,
+error,
+throw,
+time,
+date,
+now,
+universaltime,
+localtime,
+localtime_to_universaltime
+]}]).
 
 is_allowed(Function, Args) ->
     case proplists:lookup(Function, ?LOCAL_ALLOWED) of
@@ -125,17 +125,17 @@ is_allowed(lists, seq, _) ->
     false;
 is_allowed(Module, Function, Args) ->
     case proplists:lookup(Module, ?NON_LOCAL_ALLOWED) of
-	{Module, true} ->
-	    check_limits(Args);
-	{Module, Functions} when is_list(Functions) ->
-	    case lists:member(Function, Functions) of
-		true ->
-		    check_limits(Args);
-		false ->
-		    false
-	    end;
-	_Else ->
-	    false
+{Module, true} ->
+check_limits(Args);
+{Module, Functions} when is_list(Functions) ->
+case lists:member(Function, Functions) of
+true ->
+check_limits(Args);
+false ->
+false
+end;
+_Else ->
+false
     end.
 
 check_limits(Args) ->
@@ -147,7 +147,7 @@ max_args(Args) ->
         true ->
             true;
         false ->
-            sandbox:restricted()
+            sandbox:restricted_msg()
     end.
 
 max_heap_size() ->
@@ -156,5 +156,5 @@ max_heap_size() ->
         true ->
             true;
         false ->
-            sandbox:restricted()
+            sandbox:restricted_msg()
     end.

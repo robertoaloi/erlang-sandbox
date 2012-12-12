@@ -7,6 +7,7 @@
 -define(MAX_HEAP_SIZE, 10000).
 -define(MAX_ARGS_SIZE, 200).
 -define(MAX_SIZE_QUALIFIER_DIMENSION, 500).
+-define(MAX_SPACE_DIMENSION,1000).
 
 -define(ATOM_PREFIX, "axwlefhubay_").
 
@@ -41,6 +42,7 @@ nlh(_F, _Args) ->
     sandbox:restricted_msg().
 
 safe_application(Node) ->
+    io:format("Tree: ~w~n",[Node]),
     case erl_syntax:type(Node) of
         application ->
             case erl_syntax_lib:analyze_application(Node) of
@@ -97,8 +99,43 @@ safe_application(Node) ->
                 true ->
                     sandbox:restricted_msg()
             end;
-        _ ->
+        list_comp ->
+            ListCompBody = erl_syntax:list_comp_body(Node),
+            SpaceDimension = calculateSpaceDimension(ListCompBody),
+            case SpaceDimension =< ?MAX_SPACE_DIMENSION of
+                true ->
+                    Node;
+                false ->
+                    sandbox:restricted_msg()
+            end;
+        binary_comp ->
+            BinaryCompBody = erl_syntax:binary_comp_body(Node),
+            SpaceDimension = calculateSpaceDimension(BinaryCompBody),
+            case SpaceDimension =< ?MAX_SPACE_DIMENSION of
+                true ->
+                    Node;
+                false ->
+                    sandbox:restricted_msg()
+            end;
+        _Else ->
             Node
+    end.
+
+calculateSpaceDimension(ListCompBody)->
+    calculateSpaceDimension(ListCompBody,1).
+
+calculateSpaceDimension([],Acc)->
+    erlang:display(Acc),
+    Acc;
+calculateSpaceDimension([H|T],Acc)->
+    H1 = restore_expr(H),
+    case erl_syntax:type(H1) of
+    generator ->
+        [_Var,List] = erl_syntax:subtrees(H1),
+        {value, Value, _NBs} = erl_eval:exprs(revert(List), get(bindings), {eval, fun lh/3}, {value, fun nlh/2}),
+        calculateSpaceDimension(T,Acc*length(Value));
+    _ ->
+        calculateSpaceDimension(T,Acc)
     end.
 
 replace_atoms(Node) ->
