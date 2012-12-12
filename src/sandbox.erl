@@ -42,7 +42,6 @@ nlh(_F, _Args) ->
     sandbox:restricted_msg().
 
 safe_application(Node) ->
-    io:format("Tree: ~w~n",[Node]),
     case erl_syntax:type(Node) of
         application ->
             case erl_syntax_lib:analyze_application(Node) of
@@ -125,7 +124,6 @@ calculateSpaceDimension(ListCompBody)->
     calculateSpaceDimension(ListCompBody,1).
 
 calculateSpaceDimension([],Acc)->
-    erlang:display(Acc),
     Acc;
 calculateSpaceDimension([H|T],Acc)->
     H1 = restore_expr(H),
