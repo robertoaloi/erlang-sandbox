@@ -90,7 +90,7 @@ safe_application(Node) ->
             case SubTree of
                 {integer,1,Value} ->
                     if 
-                        Value < ?MAX_SIZE_QUALIFIER_DIMENSION -> 
+                        (Value < ?MAX_SIZE_QUALIFIER_DIMENSION) and (Value > 0) -> 
                             Node;
                         true -> 
                             sandbox:restricted_msg()
